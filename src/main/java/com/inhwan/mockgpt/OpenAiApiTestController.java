@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.List;
 
 @Slf4j
@@ -42,18 +43,20 @@ public class OpenAiApiTestController {
         return service.createCompletion(completionRequest);
     }
 
+    // timeout 문제 - https://community.openai.com/t/http-timeout-error-at-the-maximum-token-limit/211767
+    // https://github.com/TheoKanning/openai-java/issues/241
     @GetMapping("/chat/completion")
     public ChatCompletionResult testChatCompletion() {
-        OpenAiService service = new OpenAiService(apiKey);
+        OpenAiService service = new OpenAiService(apiKey, Duration.ofMinutes(3));
 
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model("gpt-3.5-turbo-0301")
                 .temperature(0.8)
-                .n(10)
-                .messages(List.of(new ChatMessage("user", "Create 10 sentences to use as post dummy data in Korean")))
+                .n(1)
+                .messages(List.of(new ChatMessage("user", "더미 데이터로 사용할 게시글 내용을 100개 생성해줘")))
                 .build();
 
-//        service.createCompletion(completionRequest).getChoices().forEach(System.out::println);
+        service.createChatCompletion(chatCompletionRequest).getChoices().forEach(System.out::println);
         return service.createChatCompletion(chatCompletionRequest);
     }
 }
